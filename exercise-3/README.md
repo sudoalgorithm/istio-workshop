@@ -30,13 +30,13 @@ curl http://[YOUR_SERVICE_EXTERNAL_IP]:8080/hello/world
 
 Open the [helloworldservice-service.yaml](helloworldservice-service.yaml) to examine the service descriptor. The important part about this file is the selector section. This is how a service knows which pod to route the traffic to, by matching the selector labels with the labels of the pods.
 
-The other important part to notice in this file is the type of service is a Load Balancer. This tells GCE that an externally facing load balancer should be created for this service so that it is accessible from the outside.
+The other important part to notice in this file is the type of service is a Load Balancer. This tells IBM Cloud that an externally facing load balancer should be created for this service so that it is accessible from the outside.
 
 Since we are running two instances of the Hello World Service (one instance in one pod), and that the IP addresses are not only unique, but also ephemeral - how will a client reach our services? We need a way to discover the service.
 
 In Kubernetes, Service Discovery is a first class citizen. We created a Service that will:
-act as a load balancer to load balance the requests to the pods, and
-provide a stable IP address, allow discovery from the API, and also create a DNS name!
+- act as a load balancer to load balance the requests to the pods, and
+- provide a stable IP address, allow discovery from the API, and also create a DNS name!
 
 #### Optional - curl the service using a DNS name
 
