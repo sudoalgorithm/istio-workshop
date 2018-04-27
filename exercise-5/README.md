@@ -1,26 +1,27 @@
-## Exercise 5 - Installing Istio 0.6.0
+# Exercise 5 - Installing Istio 0.6.0
 
-#### Clean up
+### Clean up
 
-Start with a clean slate and delete all deployed services from the cluster:
+Start with a clean slate and delete all deployed services from the cluster.
+**_Note, this step is only necessary if you have run through the workshop exercises once before with the same cluster_**
 
 ```sh
 kubectl delete all --all
 ```
 
-#### Download Istio 0.6.0
+### Download Istio 0.7.1
 
-Download Istio 0.6.0 from the following website:
+Download Istio 0.7.1 from the following website:
 
-https://github.com/istio/istio/releases/tag/0.6.0
+https://github.com/istio/istio/releases/tag/0.7.1
 
 For example, in Cloud Shell, you can install Istio to the home directory:
 
 ```sh
 cd ~/
-wget https://github.com/istio/istio/releases/download/0.6.0/istio-0.6.0-linux.tar.gz
-tar -xzvf istio-0.6.0-linux.tar.gz
-ln -sf ~/istio-0.6.0 ~/istio
+wget https://github.com/istio/istio/releases/download/0.7.1/istio-0.7.1-linux.tar.gz
+tar -xzvf istio-0.7.1-linux.tar.gz
+ln -sf ~/istio-0.7.1 ~/istio
 ```
 
 ```sh
@@ -32,7 +33,7 @@ Also, save it in `.bashrc` in case you restart your shell:
 echo 'export PATH=~/istio/bin:$PATH' >> ~/.bashrc
 ```
 
-#### Running istioctl
+### Running istioctl
 
 Istio related commands need to have `istioctl` in the path. Verify it is available by running:
 
@@ -42,34 +43,34 @@ istioctl -h
 
 #### Install Istio on the Kubernetes Cluster
 
-1 - First grant cluster admin permissions to the current user (admin permissions are required to create the necessary RBAC rules for Istio):
+1. First grant cluster admin permissions to the current user (admin permissions are required to create the necessary RBAC rules for Istio).
+
+**_Note, if you are using IBM Cloud proceed to step 2._**
 
 ```sh
 kubectl create clusterrolebinding cluster-admin-binding \
     --clusterrole=cluster-admin \
     --user=$(gcloud config get-value core/account)
 ```
-2 - Next install Istio on the Kubernetes cluster:
+2. Install Istio on the Kubernetes cluster
 
 For this workshop we are not using Istio Auth because we want to test using outside services accessing the cluster.  Istio Auth enables mutual TLS authentication between pods but it prevents the ability to access the services outside the cluster.
-
-To install plain istio run:
 
 ```sh
 kubectl apply -f ~/istio/install/kubernetes/istio.yaml
 ```
 
 
-####  Install Add-ons for Grafana, Prometheus, and Zipkin:
+####  Install Add-ons for Grafana, Prometheus, and Jaeger
 
 ```sh
-kubectl apply -f ~/istio/install/kubernetes/addons/zipkin.yaml
 kubectl apply -f ~/istio/install/kubernetes/addons/grafana.yaml
 kubectl apply -f ~/istio/install/kubernetes/addons/prometheus.yaml
 kubectl apply -f ~/istio/install/kubernetes/addons/servicegraph.yaml
+kubectl apply -n istio-system -f https://raw.githubusercontent.com/jaegertracing/jaeger-kubernetes/master/all-in-one/jaeger-all-in-one-template.yml
 ```
 
-#### Viewing the Istio Deployments
+### View the Istio deployments
 
 Istio is deployed in a separate Kubernetes namespace `istio-system`  You can watch the state of Istio and other services and pods using the watch flag (`-w`) when listing Kubernetes resources. For example, in two separate terminal windows run:
 

@@ -1,6 +1,6 @@
 ## Exercise 10 - Request Routing and Canary Testing
 
-#### Inspecting Mixer
+### Inspecting Mixer
 
 Envoy proxies call Mixer to report statistics and check for route rules. By opening up some of the mixer ports we can get an of idea what calls its seeing:
 
@@ -10,17 +10,17 @@ kubectl port-forward -n istio-system istio-mixer-... 9093:9093
 curl localhost:9093/metrics
 ```
 
-#### Configure the default route for Hello World service V1
+### Configure the default route for the Hello World service
 
 Because there are 2 version of the HelloWorld Service Deployment (v1 and v2), before modifying any of the routes a default route needs to be set to just V1. Otherwise it will just round robin between V1 and V2
 
-1 - Set the default version for all requests to the hello world service using :
+1. Set the default version for all requests to the hello world service.
 
 ```sh
 istioctl create -f guestbook/route-rule-force-hello-v1.yaml
 ```
 
-This ingress rule forces `v1` of the service by giving it a weight of 100. We can see this by describing the resource we created:
+This ingress rule forces `v1` of the service by giving it a precedence of `1`. We can see this by describing the resource we created:
 ```sh
 kubectl describe routerules helloworld-default
 
@@ -41,7 +41,7 @@ Spec:
       Version:  1.0
 ```
 
-2 - Now when you curl the echo service it should always return V1 of the hello world service:
+2. Now when you curl the echo service it should always return `v1` of the hello world service.
 
 ```sh
 curl http://$INGRESS_IP/echo/universe  
@@ -54,21 +54,29 @@ curl http://$INGRESS_IP/echo/universe
 {"greeting":{"hostname":"helloworld-service-v1-286408581-9204h","greeting":"Hello universe from helloworld-service-v1-286408581-9204h with 1.0","version":"1.0"},"
 ```
 
-#### Canary Testing
+### Canary Testing
 
 Currently the routing rule only routes to `v1` of the hello world service which. What we want to do is a deployment of `v2` of the Hello World service by allowing only a small amount of traffic to it from a small group. This can be done by creating another rule with a higher precedence that routes some of the traffic to `v2`. We can do canary testing by splitting traffic between the 2 versions:
 
 ```yaml
-  destination: helloworld-service.default.svc.cluster.local
-  precedence: 1
-  route:
-  - tags:
-      version: "1.0"
-    weight: 80
-  - tags:
-      version: "2.0"
-    weight: 20
+  apiVersion: config.istio.io/v1alpha2
+  kind: RouteRule
+  metadata:
+    name: route-rule-80-20
+  spec:
+    destination:
+      name: helloworld-service
+    precedence: 2
+    route:
+    - labels:
+        version: "1.0"
+      weight: 80
+    - labels:
+        version: "2.0"
+      weight: 20
 ```
+
+Note that rules with a higher precedence number are applied first. If a precedence is not specified, then it defaults to 0. So with these two rules in place, the one with precedence 2 will be applied before the rule with precedence 1.
 
 You can apply this rule from an existing configuration:
 ```sh
@@ -82,7 +90,12 @@ curl http://$INGRESS_IP/echo/universe
 {"greeting":{"hostname":"helloworld-service-v1-286408581-9204h","greeting":"Hello universe from helloworld-service-v1-286408581-9204h with 1.0","version":"1.0"},"
 ```
 
-#### Route based on HTTP header
+Clean up
+```sh
+istioctl delete -f guestbook/route-rule-80-20.yaml
+```
+
+### Route based on HTTP header
 
 We can also canary test based on HTTP headers: if the user-agent is "mobile" it'll go to `v2`, otherwise requests will go to `v1`. Written as a route rule, this looks like:
 
@@ -123,7 +136,11 @@ curl http://$INGRESS_IP/echo/universe
 
 An important point to note is that the user-agent http header is propagated in the span baggage. Look at these two classes for details on how the header is [injected](https://github.com/retroryan/istio-by-example-java/blob/master/spring-boot-example/spring-istio-support/src/main/java/com/example/istio/IstioHttpSpanInjector.java) and [extracted](https://github.com/retroryan/istio-by-example-java/blob/master/spring-boot-example/spring-istio-support/src/main/java/com/example/istio/IstioHttpSpanExtractor.java):
 
-#### Route based on the browser
+Clean up
+```sh
+istioctl delete -f guestbook/route-rule-user-mobile.yaml
+```
+### Route based on the browser
 
 It is also possible to route it based on the Web Browser. For example the following routes to version 2.0 if the browser is chrome:
 

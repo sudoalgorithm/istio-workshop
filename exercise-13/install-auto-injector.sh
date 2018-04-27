@@ -24,28 +24,20 @@ fi
 
 pushd "$root_dir" >/dev/null
 
-base_uri="https://raw.githubusercontent.com/istio/istio/master/install/kubernetes"
+cd $install_dir
 
-scripts=("webhook-create-signed-cert.sh" "webhook-patch-ca-bundle.sh")
-
-for script in ${scripts[*]}; do
-  f="$install_dir/$script"
-  curl -Ls "$base_uri/$script" >"$f" 2>/dev/null
-  chmod +x "$f"
-done
-
-./install/kubernetes/webhook-create-signed-cert.sh \
+./webhook-create-signed-cert.sh \
     --service istio-sidecar-injector \
     --namespace istio-system \
     --secret sidecar-injector-certs
 
-kubectl apply -f install/kubernetes/istio-sidecar-injector-configmap-release.yaml
+kubectl apply -f istio-sidecar-injector-configmap-release.yaml
 
-cat install/kubernetes/istio-sidecar-injector.yaml | \
-     ./install/kubernetes/webhook-patch-ca-bundle.sh > \
-     install/kubernetes/istio-sidecar-injector-with-ca-bundle.yaml
+cat istio-sidecar-injector.yaml | \
+     ./webhook-patch-ca-bundle.sh > \
+     istio-sidecar-injector-with-ca-bundle.yaml
 
-kubectl apply -f install/kubernetes/istio-sidecar-injector-with-ca-bundle.yaml
+kubectl apply -f istio-sidecar-injector-with-ca-bundle.yaml
 
 popd >/dev/null
 

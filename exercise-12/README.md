@@ -5,7 +5,7 @@ In this exercise we will learn how to test the resiliency of an application by i
 To test our guestbook application for resiliency, this exercise will test injecting different levels of delay when the user agent accessing the hello world service is mobile.
 
 
-#### Inject a route rule to delay hello world
+### Inject a route rule to delay hello world
 
 
 We'll delay access to the Hello World service by adding the `mixer-rule-denial.yaml` rule that forces a delay:

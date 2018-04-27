@@ -1,6 +1,6 @@
 ## Exercise 11 - Service Isolation Using Mixer
 
-#### Service Isolation Using Mixer
+### Service Isolation Using Mixer
 
 We'll block access to the Hello World service by adding the mixer-rule-denial.yaml rule shown below:
 
@@ -48,7 +48,7 @@ Verify that access is now denied:
 curl http://$INGRESS_IP/hello/world
 ```
 
-#### Block Access to v2 of the Hello World service
+### Block Access to v2 of the Hello World service
 
 ```yaml
 # The rule that uses denier to deny requests to version 2.0 of the helloworld service

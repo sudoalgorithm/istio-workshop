@@ -12,13 +12,13 @@ The added configuration controlls three pieces of Mixer functionality:
 
 The metrics configuration directs Mixer to send metric values to Prometheus. It uses three stanzas (or blocks) of configuration: instance configuration, handler configuration, and rule configuration.
 
-#### Create a Rule to Collect Telemetry Data
+### Create a Rule to Collect Telemetry Data
 
 ```sh
 istioctl create -f guestbook/guestbook-telemetry.yaml
 ```
 
-#### Mixer Log Stream
+### Mixer Log Stream
 
 The logs configuration directs Mixer to send log entries to stdout. It uses three stanzas (or blocks) of configuration: instance configuration, handler configuration, and rule configuration.
 

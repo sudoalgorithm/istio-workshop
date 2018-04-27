@@ -1,7 +1,7 @@
 ## Workshop Setup
-- [Setup for the workshop](setup/README.md)
-- [Exercise 1 - Google Cloud SDK Setup](exercise-1/README.md)
-- [Exercise 1 - AWS Setup](exercise-1/README_AWS.md)
+- [Exercise 1 - Accessing your cluster in IBM Cloud Container Service](exercise-1/README-IKS.md)
+- [Setup GKE Cluster](setup/README-GKE.md)
+- [Exercise 1 - Google Cloud SDK Setup](exercise-1/README-GKE.md)
 
 ## Exploring Kubernetes
 

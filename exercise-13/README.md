@@ -1,10 +1,10 @@
 ## Exercise 13 - Istio Mutual TLS
 
-#### Overview of Istio Mutual TLS
+### Overview of Istio Mutual TLS
 
 Istio provides transparent, and frankly magical, mutal TLS to services inside the service mesh when asked. By mutual TLS we understand that both the client and the server authenticate each others certificates as part of the TLS handshake.
 
-#### Enable Mutual TLS
+### Enable Mutual TLS
 
 Let the past go. Kill it, if you have to:
 ```
@@ -36,7 +36,7 @@ kubectl label namespace default istio-injection=enabled
 kubectl create -f samples/bookinfo/kube/bookinfo.yaml
 ```
 
-#### Take it for a spin
+## Testing mutual TLS security
 
 At this point it might seem like nothing changed, but it has.
 Let's disable the webhook in default for a second.
@@ -45,7 +45,13 @@ Let's disable the webhook in default for a second.
 kubectl label namespace default istio-injection-
 ```
 
-Now lets give ourselves a space to play
+Validate that the `default` namespace has the istio-injection disabled.
+
+```
+kubectl get ns -L istio-injection
+```
+
+Now lets deploy a simple pod to validate that mutual TLS is working.
 
 ```
 kubectl run toolbox -l app=toolbox  --image centos:7 /bin/sh -- -c 'sleep 84600'
@@ -58,7 +64,7 @@ tb=$(kubectl get po -l app=toolbox -o template --template '{{(index .items 0).me
 kubectl exec -it $tb curl -- https://details:9080/details/0 -k
 ```
 
-Denied!
+Denied! You will not gain access because a certificate was not found.
 
 Let's exfiltrate the certificates out of a proxy so we can pretend to be them (incidentally I hope this serves as a cautionary tale about the importance locking down pods).
 
@@ -82,15 +88,21 @@ Try once more to talk to the details service, but this time with feeling:
 kubectl exec -it $tb curl -- https://details:9080/details/0 -v --key ./key.pem --cert ./cert-chain.pem --cacert ./root-cert.pem -k
 ```
 
-Success! We really are protecting our connections with tls. Time to enjoy its magic from the inside. Let's enable the webhook and roll our pod:
+Success! We really are protecting our connections with tls. Time to enjoy its magic from the inside. Let's enable the webhook and see how the system works normally.
 
+Re-enable istio-injection and delete the `toolbox` pod.
 ```
 kubectl label namespace default istio-injection=enabled
 kubectl delete po $tb
+```
+
+Attempt to access the details service from within the toolbox after the istio sidecar has been injected.
+
+```
 tb=$(kubectl get po -l app=toolbox -o template --template '{{(index .items 0).metadata.name}}')
 kubectl exec -it $tb curl -- http://details:9080/details/0
 ```
 
-Notice the protocol.
+**_Notice the protocol._**
 
-#### [Continue to Exercise 14 - Ensuring security with iptables](../exercise-14/README.md)
+#### [Continue to Exercise 14 - mTLS again, now with 100% more SPIFFE](../exercise-14/README.md)
