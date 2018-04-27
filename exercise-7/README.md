@@ -6,7 +6,7 @@ A Kubernetes Ingress rule can be created that routes external requests through t
 
 #### Inspecting the Istio Ingress controller
 
-The ingress controller gets expossed as a normal kubernetes service load balancer:
+The ingress controller gets exposed as a normal kubernetes service load balancer:
 
 ```sh
 kubectl get svc istio-ingress -n istio-system -o yaml

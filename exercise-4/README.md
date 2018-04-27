@@ -38,7 +38,7 @@
     kubectl scale deployment helloworld-service-v1 --replicas=17
     ```
 
-If you look at the pod status, some of the pods will show a `Pending` state. That is because we only have four physical nodes, and the underlying infrastructure has run out of capacity to run the containers with the requested resources. And the underlying infrastructure has run out of capacity to run the containers with the requested resources.
+If you look at the pod status, some of the pods will show a `Pending` state. That is because we only have four physical nodes, and the underlying infrastructure has run out of capacity to run the containers with the requested resources.
 
 3. Pick a pod name that has a `Pending` state to confirm the lack of resources in the detailed status.
 
