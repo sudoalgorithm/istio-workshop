@@ -45,6 +45,8 @@ Your IBM Cloud account and your Kubernetes cluster have been pre-provisioned for
 3. Verify the worker nodes in the cluster.   
     ```
     bx cs workers guestbook
+    ```
+    ```
     bx cs worker-get [worker name]
     ```
     
