@@ -57,7 +57,7 @@ kubectl create clusterrolebinding cluster-admin-binding \
 For this workshop we are not using Istio Auth because we want to test using outside services accessing the cluster.  Istio Auth enables mutual TLS authentication between pods but it prevents the ability to access the services outside the cluster.
 
 ```sh
-kubectl apply -f ~/istio/install/kubernetes/istio-auth.yaml
+kubectl apply -f ~/istio/install/kubernetes/istio.yaml
 ```
 
 
