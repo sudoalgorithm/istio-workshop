@@ -1,6 +1,6 @@
 ##Google Cloud SDK Troubleshooting
 
-If kubectl is not connecting to your cluster or showing pods trying getting the credentials:
+If kubectl is not connecting to your cluster or showing pods trying getting the credentials in Google Cloud:
 
 `gcloud container clusters get-credentials`
 

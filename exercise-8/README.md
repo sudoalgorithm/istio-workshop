@@ -35,4 +35,4 @@ kubectl -n istio-system port-forward \
 
 Browse to http://localhost:8088/dotviz
 
-#### [Continue to Exercise 9 - Distributed Tracing](../exercise-9/README.md)
+#### [Continue to Exercise 8a - Additional Telemetry and Log](../exercise-8a/README.md)

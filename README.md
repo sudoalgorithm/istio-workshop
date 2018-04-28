@@ -8,7 +8,6 @@
 - [Exercise 2 - Deploying a microservice to Kubernetes](exercise-2/README.md)
 - [Exercise 3 - Creating a Kubernetes Service](exercise-3/README.md)
 - [Exercise 4 - Scaling In and Out](exercise-4/README.md)
-- [Exercise 4a - Envoy](exercise-4a/README.md)
 
 ## Creating a Service Mesh with Istio
 
@@ -21,6 +20,9 @@
 - [Exercise 11 - Service Isolation Using Mixer](exercise-11/README.md)
 - [Exercise 12 - Fault Injection and Rate Limiting](exercise-12/README.md)
 - [Exercise 13 - Security](exercise-13/README.md)
+- [Exercise 14 - mTLS again, now with 100% more SPIFFE](../exercise-14/README.md)]
+- [Exercise 15 - Istio RBAC](exercise-15/README.md)
+- 
 
 
 ## Credits
