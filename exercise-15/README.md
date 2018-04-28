@@ -84,7 +84,7 @@ In summary: roles are about actions, and role-bindings are about subjects.
 
 ### The final component
 
-We some final config for enablement. This is a mixer adaptor so we need the usual mixer suspects: instances and handlers. 
+We add some final config for enablement. This is a mixer adaptor so we need the usual mixer suspects: instances and handlers. 
 
 ```
 apiVersion: "config.istio.io/v1alpha2"
