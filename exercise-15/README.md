@@ -6,7 +6,7 @@ Istio has an RBAC engine implemented as a mixer adapter. There are a number of t
 
 ### Who did what
 
-The founddation is an instance of an authorization template. The purpose of the auth template is to select from the attribute vocabulary available a subset that will be endowed with specific meaning for RBAC. Consider subject selection; who is making the request? This could be extracted from a header, from the SPIFFE URI, from a cookie etc etc. The authorization template is what specifies this.
+The foundation is an instance of an authorization template. The purpose of the auth template is to select from the attribute vocabulary available a subset that will be endowed with specific meaning for RBAC. Consider subject selection; who is making the request? This could be extracted from a header, from the SPIFFE URI, from a cookie etc etc. The authorization template is what specifies this.
 
 Example usage:
 
