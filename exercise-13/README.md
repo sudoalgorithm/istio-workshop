@@ -2,7 +2,7 @@
 
 ### Overview of Istio Mutual TLS
 
-Istio provides transparent, and frankly magical, mutal TLS to services inside the service mesh when asked. By mutual TLS we understand that both the client and the server authenticate each others certificates as part of the TLS handshake.
+Istio provides transparent, and frankly magical, mutual TLS to services inside the service mesh when asked. By mutual TLS we understand that both the client and the server authenticate each others certificates as part of the TLS handshake.
 
 ### Enable Mutual TLS
 
