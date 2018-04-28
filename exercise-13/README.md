@@ -2,7 +2,7 @@
 
 ### Overview of Istio Mutual TLS
 
-Istio provides transparent, and frankly magical, mutal TLS to services inside the service mesh when asked. By mutual TLS we understand that both the client and the server authenticate each others certificates as part of the TLS handshake.
+Istio provides transparent, and frankly magical, mutual TLS to services inside the service mesh when asked. By mutual TLS we understand that both the client and the server authenticate each others certificates as part of the TLS handshake.
 
 ### Enable Mutual TLS
 
@@ -16,7 +16,6 @@ kubectl delete all --all
 It's the only way for TLS to be the way it was meant to be:
 
 ```
-# (from istio install root)
 kubectl create -f install/kubernetes/istio-auth.yaml
 ```
 
@@ -30,7 +29,6 @@ cd ~/istio-workshop/exercise-13
 Finally enable injection and deploy the thrilling Book Info sample.
 
 ```
-# (from istio install root)
 cd ~/istio
 kubectl label namespace default istio-injection=enabled
 kubectl create -f samples/bookinfo/kube/bookinfo.yaml

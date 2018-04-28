@@ -6,7 +6,7 @@ Istio has an RBAC engine implemented as a mixer adapter. There are a number of t
 
 ### Who did what
 
-The founddation is an instance of an authorization template. The purpose of the auth template is to select from the attribute vocabulary available a subset that will be endowed with specific meaning for RBAC. Consider subject selection; who is making the request? This could be extracted from a header, from the SPIFFE URI, from a cookie etc etc. The authorization template is what specifies this.
+The foundation is an instance of an authorization template. The purpose of the auth template is to select from the attribute vocabulary available a subset that will be endowed with specific meaning for RBAC. Consider subject selection; who is making the request? This could be extracted from a header, from the SPIFFE URI, from a cookie etc etc. The authorization template is what specifies this.
 
 Example usage:
 
@@ -84,7 +84,7 @@ In summary: roles are about actions, and role-bindings are about subjects.
 
 ### The final component
 
-We some final config for enablement. This is a mixer adaptor so we need the usual mixer suspects: instances and handlers. 
+We add some final config for enablement. This is a mixer adaptor so we need the usual mixer suspects: instances and handlers. 
 
 ```
 apiVersion: "config.istio.io/v1alpha2"
@@ -112,7 +112,7 @@ spec:
 There are some files missing from the Istio release that we require to do this exercise. You can obtain them by running the `pull-files.sh` script in this directory. It takes one argument, which should be the _root_ directory of your unpacked Istio release.
 
 ```
-$ cd ~/istio-workshop/exercise-16/
+$ cd ~/istio-workshop/exercise-15/
 $ ./pull-files.sh ~/istio
 Copying rbac samples to /home/ben/src/work/grcl/istio-0.5.0/samples/bookinfo/kube, continue? [Y/n] 
 Copying...
