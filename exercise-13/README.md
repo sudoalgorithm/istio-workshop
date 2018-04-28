@@ -1,106 +1,98 @@
-## Exercise 13 - Istio Mutual TLS
+## Exercise 13 - Service Isolation Using Mixer
 
-### Overview of Istio Mutual TLS
+### Service Isolation Using Mixer
 
-Istio provides transparent, and frankly magical, mutual TLS to services inside the service mesh when asked. By mutual TLS we understand that both the client and the server authenticate each others certificates as part of the TLS handshake.
+We'll block access to the Hello World service by adding the mixer-rule-denial.yaml rule shown below:
 
-### Enable Mutual TLS
-
-Let the past go. Kill it, if you have to:
-```
-cd ~/istio
-kubectl delete -f install/kubernetes/istio.yaml
-kubectl delete all --all
-```
-
-It's the only way for TLS to be the way it was meant to be:
-
-```
-kubectl create -f install/kubernetes/istio-auth.yaml
-```
-
-We need to (re)create the auto injector. There is a script bundled that will do this but you will need to switch back to _this_ directory and give it the location of your istio install. Or you can redo the steps from exercise 6. Your call.
-
-```
-cd ~/istio-workshop/exercise-13
-./install-auto-injector.sh ~/istio
-```
-
-Finally enable injection and deploy the thrilling Book Info sample.
-
-```
-cd ~/istio
-kubectl label namespace default istio-injection=enabled
-kubectl create -f samples/bookinfo/kube/bookinfo.yaml
-```
-
-## Testing mutual TLS security
-
-At this point it might seem like nothing changed, but it has.
-Let's disable the webhook in default for a second.
-
-```
-kubectl label namespace default istio-injection-
+```yaml
+# Create a denier that returns a google.rpc.Code 7 (PERMISSION_DENIED)
+apiVersion: "config.istio.io/v1alpha2"
+kind: denier
+metadata:
+  name: denyall
+  namespace: istio-system
+spec:
+  status:
+    code: 7
+    message: Not allowed
+---
+# The (empty) data handed to denyall at run time
+apiVersion: "config.istio.io/v1alpha2"
+kind: checknothing
+metadata:
+  name: denyrequest
+  namespace: istio-system
+spec:
+---
+# The rule that uses denier to deny requests to the helloworld service
+apiVersion: "config.istio.io/v1alpha2"
+kind: rule
+metadata:
+  name: deny-hello-world
+  namespace: istio-system
+spec:
+  match: destination.service=="helloworld-service.default.svc.cluster.local"
+  actions:
+  - handler: denyall.denier
+    instances:
+    - denyrequest.checknothing
 ```
 
-Validate that the `default` namespace has the istio-injection disabled.
-
-```
-kubectl get ns -L istio-injection
+```sh
+istioctl create -f guestbook/mixer-rule-denial.yaml
 ```
 
-Now lets deploy a simple pod to validate that mutual TLS is working.
+Verify that access is now denied:
 
-```
-kubectl run toolbox -l app=toolbox  --image centos:7 /bin/sh -- -c 'sleep 84600'
-```
-
-First: let's prove to ourselves that we really are doing something with tls. From here on out assume names like foo-XXXX need to be replaced with the foo podname you have in your cluster. We pass `-k` to `curl` to convince it to be a bit laxer about cert checking.
-
-```
-tb=$(kubectl get po -l app=toolbox -o template --template '{{(index .items 0).metadata.name}}')
-kubectl exec -it $tb curl -- https://details:9080/details/0 -k
+```sh
+curl http://$INGRESS_IP/hello/world
 ```
 
-Denied! You will not gain access because a certificate was not found.
+### Block Access to v2 of the Hello World service
 
-Let's exfiltrate the certificates out of a proxy so we can pretend to be them (incidentally I hope this serves as a cautionary tale about the importance locking down pods).
-
+```yaml
+# The rule that uses denier to deny requests to version 2.0 of the helloworld service
+apiVersion: "config.istio.io/v1alpha2"
+kind: rule
+metadata:
+  name: deny-hello-world
+  namespace: istio-system
+spec:
+  match: destination.service=="helloworld-service.default.svc.cluster.local" && destination.labels["version"] == "2.0"
+  actions:
+  - handler: denyall.denier
+    instances:
+    - denyrequest.checknothing
 ```
-pp=$(kubectl get po -l app=productpage -o template --template '{{(index .items 0).metadata.name}}')
-mkdir ~/tmp # or wherever you want to stash these certs
-cd ~/tmp
-fs=(key.pem cert-chain.pem root-cert.pem)
-for f in ${fs[@]}; do kubectl exec -c istio-proxy $pp /bin/cat -- /etc/certs/$f >$f; done
-```
-
-This should give you the certs. Now let us copy them into our toolbox.
-
-```
-for f in ${fs[@]}; do kubectl cp $f default/$tb:$f; done
-```
-
-Try once more to talk to the details service, but this time with feeling:
-
-```
-kubectl exec -it $tb curl -- https://details:9080/details/0 -v --key ./key.pem --cert ./cert-chain.pem --cacert ./root-cert.pem -k
+Set the mobile ingress rule to route to `v2` of the `helloworld` service.
+```sh
+kubectl create -f guestbook/route-rule-user-mobile.yaml
 ```
 
-Success! We really are protecting our connections with tls. Time to enjoy its magic from the inside. Let's enable the webhook and see how the system works normally.
-
-Re-enable istio-injection and delete the `toolbox` pod.
-```
-kubectl label namespace default istio-injection=enabled
-kubectl delete po $tb
+```sh
+istioctl delete -f guestbook/mixer-rule-denial.yaml
+istioctl create -f guestbook/mixer-rule-denial-v2.yaml
 ```
 
-Attempt to access the details service from within the toolbox after the istio sidecar has been injected.
-
-```
-tb=$(kubectl get po -l app=toolbox -o template --template '{{(index .items 0).metadata.name}}')
-kubectl exec -it $tb curl -- http://details:9080/details/0
+You should not be able to access v2:
+```sh
+curl http://$INGRESS_IP/hello/world -A mobile
 ```
 
-**_Notice the protocol._**
+Delete mobile routing ingress rule.
+```sh
+kubectl delete -f guestbook/route-rule-user-mobile.yaml
+```
+
+Ensure that that you can access the v1 service:
+```sh
+curl http://$INGRESS_IP/hello/world
+```
+
+Clean up the rule:
+
+```sh
+istioctl delete -f guestbook/mixer-rule-denial-v2.yaml
+```
 
 #### [Continue to Exercise 14 - mTLS again, now with 100% more SPIFFE](../exercise-14/README.md)

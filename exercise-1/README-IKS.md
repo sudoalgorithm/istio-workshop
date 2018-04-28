@@ -68,10 +68,12 @@ Your IBM Cloud account and your Kubernetes cluster have been pre-provisioned for
 
 From your command line, run:
    
-```    
+```  
+cd ~/
+
 git clone https://github.com/dcberg/istio-workshop
 
-cd istio-workshop
+cd ~/istio-workshop
 ```
 
 This is the working directory for the lab.
