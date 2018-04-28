@@ -37,12 +37,25 @@ Your IBM Cloud account and your Kubernetes cluster have been pre-provisioned for
     
     c. Copy and paste the output command from the previous step to set the `KUBECONFIG` environment variable and configure your CLI to run `kubectl` commands against your cluster.
 
-2. View details of your cluster.
+2. Validate that you have properly configured your `kubectl` CLI.
+
+    ```bash
+    kubectl get node
+    ```
+    You should see results similar as you see below.
+    ```
+    AME             STATUS    ROLES     AGE       VERSION
+    10.188.141.236   Ready     <none>    10h       v1.9.3-2+0b1ffe38401940
+    10.188.141.238   Ready     <none>    10h       v1.9.3-2+0b1ffe38401940
+    10.188.141.244   Ready     <none>    10h       v1.9.3-2+0b1ffe38401940
+    ```
+
+3. View details of your cluster.
     ```
     bx cs cluster-get guestbook
     ```
 
-3. Verify the worker nodes in the cluster.   
+4. Verify the worker nodes in the cluster.   
     ```
     bx cs workers guestbook
     ```
@@ -50,16 +63,6 @@ Your IBM Cloud account and your Kubernetes cluster have been pre-provisioned for
     bx cs worker-get [worker name]
     ```
     
-4. Access the Kubernetes Dashboard.
-
-    a. In a browser, go to http://bluemix.net to access the IBM Cloud console. Log in using the user name and password from your lab proctor.
-
-    b. Click on the _hamburger_ icon in the upper left corner and select *Containers*.
-
-    c. Click on *Clusters* and change the "Location" filter to *US East*.
-
-    d. Click on your *guestbook* cluster and click on the *Kubernetes Dashboard* button.
-
 
 ### Clone the lab repo
 

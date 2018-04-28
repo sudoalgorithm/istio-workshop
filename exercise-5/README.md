@@ -15,7 +15,7 @@ Download Istio 0.7.1 from the following website:
 
 https://github.com/istio/istio/releases/tag/0.7.1
 
-For example, in Cloud Shell, you can install Istio to the home directory:
+For example you can install Istio to the home directory from a terminal.
 
 ```sh
 cd ~/
