@@ -196,10 +196,7 @@ Look at the details of the pod and then inspect the envoy config:
 
 ```
 kubectl describe pod helloworld-service-v1.....
-kubectl exec -it helloworld-service-v1..... -c istio-proxy bash
-cd /etc/istio/proxy
-more envoy-rev6.json
-exit
+istioctl proxy-config helloworld-service-v1.....
 ```
 
 #### [Continue to Exercise 7 - Istio Ingress controller](../exercise-7/README.md)
