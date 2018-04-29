@@ -182,4 +182,4 @@ Clean up
 istioctl delete -f guestbook/route-rule-user-agent-chrome.yaml
 ```
 
-#### [Continue to Exercise 11 - Fault Injection and Rate Limiting](../exercise-11/README.md)
+#### [Continue to Exercise 11 - Service Isolation Using Mixer](../exercise-11/README.md)

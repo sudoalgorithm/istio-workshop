@@ -1,106 +1,54 @@
-## Exercise 12 - Security
+## Exercise 12 - Fault Injection and Rate Limiting
 
-### Overview of Istio Mutual TLS
+In this exercise we will learn how to test the resiliency of an application by injecting faults.
 
-Istio provides transparent, and frankly magical, mutual TLS to services inside the service mesh when asked. By mutual TLS we understand that both the client and the server authenticate each others certificates as part of the TLS handshake.
+To test our guestbook application for resiliency, this exercise will test injecting different levels of delay when the user agent accessing the hello world service is mobile.
 
-### Enable Mutual TLS
 
-Let the past go. Kill it, if you have to:
-```
-cd ~/istio
-kubectl delete -f install/kubernetes/istio.yaml
-kubectl delete all --all
-```
+### Inject a route rule to delay hello world
 
-It's the only way for TLS to be the way it was meant to be:
 
-```
-kubectl create -f install/kubernetes/istio-auth.yaml
-```
+We'll delay access to the Hello World service by adding the `mixer-rule-denial.yaml` rule that forces a delay:
 
-We need to (re)create the auto injector. There is a script bundled that will do this but you will need to switch back to _this_ directory and give it the location of your istio install. Or you can redo the steps from exercise 6. Your call.
-
-```
-cd ~/istio-workshop/exercise-13
-./install-auto-injector.sh ~/istio
+```yaml
+httpFault:
+  delay:
+    percent: 100
+    fixedDelay: 10s
+  abort:
+    percent: 10
+    httpStatus: 400
 ```
 
-Finally enable injection and deploy the thrilling Book Info sample.
+Be sure the old route rule for mobile is removed before adding the delay.
 
-```
-cd ~/istio
-kubectl label namespace default istio-injection=enabled
-kubectl create -f samples/bookinfo/kube/bookinfo.yaml
-```
+```sh
 
-## Testing mutual TLS security
+istioctl delete -f guestbook/route-rule-80-20.yaml
+istioctl delete -f guestbook/route-rule-user-agent-chrome.yaml
+istioctl delete -f guestbook/route-rule-user-mobile.yaml
 
-At this point it might seem like nothing changed, but it has.
-Let's disable the webhook in default for a second.
-
-```
-kubectl label namespace default istio-injection-
+istioctl create -f guestbook/route-rule-delay-guestbook.yaml
 ```
 
-Validate that the `default` namespace has the istio-injection disabled.
+When you curl without a user agent it should return a response as expected:
 
-```
-kubectl get ns -L istio-injection
-```
-
-Now lets deploy a simple pod to validate that mutual TLS is working.
-
-```
-kubectl run toolbox -l app=toolbox  --image centos:7 /bin/sh -- -c 'sleep 84600'
+```sh
+curl http://$INGRESS_IP/echo/universe
 ```
 
-First: let's prove to ourselves that we really are doing something with tls. From here on out assume names like foo-XXXX need to be replaced with the foo podname you have in your cluster. We pass `-k` to `curl` to convince it to be a bit laxer about cert checking.
+However when you curl with the user agent mobile the connection will timeout:
 
-```
-tb=$(kubectl get po -l app=toolbox -o template --template '{{(index .items 0).metadata.name}}')
-kubectl exec -it $tb curl -- https://details:9080/details/0 -k
-```
-
-Denied! You will not gain access because a certificate was not found.
-
-Let's exfiltrate the certificates out of a proxy so we can pretend to be them (incidentally I hope this serves as a cautionary tale about the importance locking down pods).
-
-```
-pp=$(kubectl get po -l app=productpage -o template --template '{{(index .items 0).metadata.name}}')
-mkdir ~/tmp # or wherever you want to stash these certs
-cd ~/tmp
-fs=(key.pem cert-chain.pem root-cert.pem)
-for f in ${fs[@]}; do kubectl exec -c istio-proxy $pp /bin/cat -- /etc/certs/$f >$f; done
+```sh
+$ curl http://$INGRESS_IP/echo/universe -A mobile
+{"greeting":{"greeting":"Unable to connect"},
 ```
 
-This should give you the certs. Now let us copy them into our toolbox.
+If you modify the delay below the timeout configured in the applciation the service will still return.  For example if we modify it to 4 seconds, the guestbook service still returns a response.
 
-```
-for f in ${fs[@]}; do kubectl cp $f default/$tb:$f; done
-```
-
-Try once more to talk to the details service, but this time with feeling:
-
-```
-kubectl exec -it $tb curl -- https://details:9080/details/0 -v --key ./key.pem --cert ./cert-chain.pem --cacert ./root-cert.pem -k
+Clean up
+```sh
+istioctl delete -f guestbook/route-rule-delay-guestbook.yaml
 ```
 
-Success! We really are protecting our connections with tls. Time to enjoy its magic from the inside. Let's enable the webhook and see how the system works normally.
-
-Re-enable istio-injection and delete the `toolbox` pod.
-```
-kubectl label namespace default istio-injection=enabled
-kubectl delete po $tb
-```
-
-Attempt to access the details service from within the toolbox after the istio sidecar has been injected.
-
-```
-tb=$(kubectl get po -l app=toolbox -o template --template '{{(index .items 0).metadata.name}}')
-kubectl exec -it $tb curl -- http://details:9080/details/0
-```
-
-**_Notice the protocol._**
-
-#### [Continue to Exercise 13 - Service Isolation Using Mixer](../exercise-13/README.md)
+#### [Continue to Exercise 13 - Security](../exercise-13/README.md)
