@@ -11,12 +11,13 @@ kubectl delete all --all
 
 ## Download Istio 0.7.1
 
-Download Istio 0.7.1 from the following website:
+Download Istio 0.7.1 for your architecture from the following website:
 
 https://github.com/istio/istio/releases/tag/0.7.1
 
-For example you can install Istio to the home directory from a terminal.
+The lab assumes you are working from your root directory. Copy the downloaded archive to your root directory and unzip it. Create a linked folder (or rename the folder) to `istio`.
 
+For example, with a linux system, you can install Istio to the home directory from a terminal with the following commands.
 ```sh
 cd ~/
 wget https://github.com/istio/istio/releases/download/0.7.1/istio-0.7.1-linux.tar.gz
