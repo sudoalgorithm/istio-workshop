@@ -103,4 +103,4 @@ kubectl exec -it $tb curl -- http://details:9080/details/0
 
 **_Notice the protocol._**
 
-#### [Continue to Exercise 14 - mTLS again, now with 100% more SPIFFE](../exercise-14/README.md)
+#### [Continue to Exercise 14 - Istio RBAC](../exercise-14/README.md)

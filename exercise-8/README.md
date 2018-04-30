@@ -16,6 +16,7 @@ kubectl -n istio-system port-forward $(kubectl -n istio-system get pod -l app=gr
 
 Browse to http://localhost:3000 and navigate to Istio Dashboard.
 
+## Optional Activities
 ### Prometheus
 ```sh
 kubectl -n istio-system port-forward \

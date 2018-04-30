@@ -22,8 +22,7 @@ OR
 - [Exercise 11 - Service Isolation Using Mixer](exercise-11/README.md)
 - [Exercise 12 - Fault Injection and Rate Limiting](exercise-12/README.md)
 - [Exercise 13 - Security](exercise-13/README.md)
-- [Exercise 14 - mTLS again, now with 100% more SPIFFE](../exercise-14/README.md)]
-- [Exercise 15 - Istio RBAC](exercise-15/README.md)
+- [Exercise 14 - Istio RBAC](exercise-14/README.md)
 
 
 ## Credits
