@@ -48,7 +48,12 @@ If you already have an installation of kubectl in your computer you can skip thi
   
 Clone from the current repository, e.g.
 
-  `git clone https://github.com/THIS_REPOSITORY/istio-workshop`
+```sh
+cd ~/
+
+git clone https://github.com/THIS_REPOSITORY/istio-workshop
+
+```
 
 #### Windows Setup
 
