@@ -1,7 +1,7 @@
 ## Workshop Setup
 - [Exercise 1 - Accessing your cluster in IBM Cloud Container Service](exercise-1/README-IKS.md)
 OR
-- "Exercise 1 - Google Cloud cluster setup"
+- Exercise 1 - Google Cloud cluster setup
    - [Setup GKE Cluster](setup/README-GKE.md)
    - [Google Cloud SDK Setup](exercise-1/README-GKE.md)
 
