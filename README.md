@@ -1,4 +1,4 @@
-The presentation used at Kubecon in Copenhagen is available in the root of the work project - **Istio Workshop for Kubecon Europe.ppx**
+The presentation used at Kubecon in Copenhagen is available in the root of the work project - **Istio Workshop for Kubecon Europe.pptx**
 
 ## Workshop Setup
 - [Exercise 1 - Accessing your cluster in IBM Cloud Container Service](exercise-1/README-IKS.md)
