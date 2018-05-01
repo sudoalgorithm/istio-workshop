@@ -103,4 +103,4 @@ kubectl exec -it $tb curl -- http://details:9080/details/0
 
 **_Notice the protocol._**
 
-#### [Continue to Exercise 13 - Istio RBAC](../exercise-14/README.md)
+#### [Continue to Exercise 13 - Istio RBAC](../exercise-13/README.md)
