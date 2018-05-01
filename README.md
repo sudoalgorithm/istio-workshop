@@ -20,9 +20,8 @@ OR
 - [Exercise 9 - Distributed Tracing](exercise-9/README.md)
 - [Exercise 10 - Request Routing and Canary Deployments](exercise-10/README.md)
 - [Exercise 11 - Service Isolation Using Mixer](exercise-11/README.md)
-- [Exercise 12 - Fault Injection and Rate Limiting](exercise-12/README.md)
-- [Exercise 13 - Security](exercise-13/README.md)
-- [Exercise 14 - Istio RBAC](exercise-14/README.md)
+- [Exercise 12 - Security](exercise-13/README.md)
+- [Exercise 13 - Istio RBAC](exercise-14/README.md)
 
 
 ## Credits

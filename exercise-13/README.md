@@ -1,106 +1,181 @@
-## Exercise 13 - Security
+## Exercise 13 - Istio RBAC
 
-### Overview of Istio Mutual TLS
+### Mixer all the way down
 
-Istio provides transparent, and frankly magical, mutual TLS to services inside the service mesh when asked. By mutual TLS we understand that both the client and the server authenticate each others certificates as part of the TLS handshake.
+Istio has an RBAC engine implemented as a mixer adapter. There are a number of things that need to be configured before it can be turned loose on unsuspecting services.
 
-### Enable Mutual TLS
+### Who did what
 
-Let the past go. Kill it, if you have to:
+The foundation is an instance of an authorization template. The purpose of the auth template is to select from the attribute vocabulary available a subset that will be endowed with specific meaning for RBAC. Consider subject selection; who is making the request? This could be extracted from a header, from the SPIFFE URI, from a cookie etc etc. The authorization template is what specifies this.
+
+Example usage:
+
+```
+apiVersion: "config.istio.io/v1alpha2"
+kind: authorization
+metadata:
+  name: requestcontext
+  namespace: istio-system
+spec:
+  subject:
+    user: source.user | ""
+    groups: ""
+    properties:
+      app: source.labels["app"] | ""
+      version: source.labels["version"] | ""
+      namespace: source.namespace | ""
+  action:
+    namespace: destination.namespace | ""
+    service: destination.service | ""
+    method: request.method | ""
+    path: request.path | ""
+    properties:
+      app: destination.labels["app"] | ""
+      version: destination.labels["version"] | ""
+```
+
+Subject is the who, action is the what. In this instance will we be using the _service account_ as the user, which will allow us to take advantage of SPIFFE identity asserted by our x509 certificates. We also take advantage of properies to include metadata in our auth decisions, for instance the app label.
+
+### The binding of services
+
+In order to make decisions about what we will allow we need two more ingredients: roles, and bindings of those roles to eligible inbound requests. An example role:
+
+```
+Version: "config.istio.io/v1alpha2"
+kind: ServiceRole
+metadata:
+  name: details-reviews-viewer
+  namespace: default
+spec:
+  rules:
+  - services: ["details.default.svc.cluster.local"]
+    methods: ["GET"]
+  - services: ["reviews.default.svc.cluster.local"]
+    methods: ["GET"]
+    constraints:
+    - key: "version"
+      values: ["v2", "v3"]
+```
+
+Details to note:
+- The role has an applicable namespace
+- We define an array of rules, with values to be matched onto the corresponding attributes from our earlier authorization template instance (service / method / path). If path is not supplied it defaults to allowing all paths.
+- Finally constraints can be added via the extra properties defined in the authorization template.
+
+What does a binding look like?
+
+```
+apiVersion: "config.istio.io/v1alpha2"
+kind: ServiceRoleBinding
+metadata:
+  name: bind-details-reviews
+  namespace: default
+spec:
+  subjects:
+  - user: "cluster.local/ns/default/sa/bookinfo-productpage"
+  roleRef:
+    kind: ServiceRole
+    name: "details-reviews-viewer
+```
+
+This is relatively straight-forward: We define an array of subjects we would like this binding to apply to and reference the role that we would like to bind to.
+
+In summary: roles are about actions, and role-bindings are about subjects.
+
+### The final component
+
+We add some final config for enablement. This is a mixer adaptor so we need the usual mixer suspects: instances and handlers. 
+
+```
+apiVersion: "config.istio.io/v1alpha2"
+kind: rbac
+metadata:
+ name: handler
+ namespace: istio-system
+spec:
+ config_store_url: "k8s://"
+---
+apiVersion: "config.istio.io/v1alpha2"
+kind: rule
+metadata:
+  name: rbaccheck
+  namespace: istio-system
+spec:
+  actions:
+  - handler: handler.rbac
+    instances:
+    - requestcontext.authorization
+```
+
+### Switching it on
+
+There are some files missing from the Istio release that we require to do this exercise. You can obtain them by running the `pull-files.sh` script in this directory. It takes one argument, which should be the _root_ directory of your unpacked Istio release.
+
+```
+$ cd ~/istio-workshop/exercise-15/
+$ ./pull-files.sh ~/istio
+Copying rbac samples to /home/ben/src/work/grcl/istio-0.5.0/samples/bookinfo/kube, continue? [Y/n] 
+Copying...
+
+... lots of guff from curl ...
+
+```
+
+Once we have these samples we can continue. Assume all other shell is run with the working directory set to the Istio release root.
+
 ```
 cd ~/istio
-kubectl delete -f install/kubernetes/istio.yaml
-kubectl delete all --all
+kubectl apply -f samples/bookinfo/kube/bookinfo-add-serviceaccount.yaml
+kubectl apply -f samples/bookinfo/kube/istio-rbac-enable.yaml
 ```
 
-It's the only way for TLS to be the way it was meant to be:
+Now we should get denied for all the things:
 
 ```
-kubectl create -f install/kubernetes/istio-auth.yaml
+INGRESS_IP=$(kubectl get ingress -o jsonpath='{.items[0].status.loadBalancer.ingress[0].ip}')
+curl http://$INGRESS_IP/productpage
 ```
 
-We need to (re)create the auto injector. There is a script bundled that will do this but you will need to switch back to _this_ directory and give it the location of your istio install. Or you can redo the steps from exercise 6. Your call.
+We can let ourselves back in with some roles / bindings.
 
 ```
-cd ~/istio-workshop/exercise-13
-./install-auto-injector.sh ~/istio
+kubectl apply -f samples/bookinfo/kube/istio-rbac-namespace.yaml
 ```
 
-Finally enable injection and deploy the thrilling Book Info sample.
+This creates a catch-all rule that allows service in either `istio-system` or `default` to use `GET` on any service. Open the file for the details. Use curl or a brower to hit the previous endpoint and enjoy unfettered access.
+
+### Ascending to a higher plane
+
+Let's delete our overly lax policy:
 
 ```
-cd ~/istio
-kubectl label namespace default istio-injection=enabled
-kubectl create -f samples/bookinfo/kube/bookinfo.yaml
+kubectl delete -f samples/bookinfo/kube/istio-rbac-namespace.yaml
 ```
 
-## Testing mutual TLS security
+Let's introduce something a bit more fine-grained. A picture of the architecture will be helpful here.
 
-At this point it might seem like nothing changed, but it has.
-Let's disable the webhook in default for a second.
+![architecture](https://istio.io/docs/guides/img/bookinfo/withistio.svg)
 
-```
-kubectl label namespace default istio-injection-
-```
-
-Validate that the `default` namespace has the istio-injection disabled.
+We'd like ingress to be able to contact the productpage.
 
 ```
-kubectl get ns -L istio-injection
+kubectl apply -f samples/bookinfo/kube/istio-rbac-productpage.yaml
 ```
 
-Now lets deploy a simple pod to validate that mutual TLS is working.
+Now if we visit the page in the browser we can that we have the first level of the service graph opened up. Again, details are in the file. Currently everything else is showing an error. This is solved by throwing more targeted policy at the problem:
 
 ```
-kubectl run toolbox -l app=toolbox  --image centos:7 /bin/sh -- -c 'sleep 84600'
+kubectl apply -f samples/bookinfo/kube/istio-rbac-details-reviews.yaml
 ```
 
-First: let's prove to ourselves that we really are doing something with tls. From here on out assume names like foo-XXXX need to be replaced with the foo podname you have in your cluster. We pass `-k` to `curl` to convince it to be a bit laxer about cert checking.
+This enables reviews (for v2 / v3) and details. Visit the page! You can see how this was done by checking out the file. Note the usage of the spiffe identity.
+
+Lastly:
 
 ```
-tb=$(kubectl get po -l app=toolbox -o template --template '{{(index .items 0).metadata.name}}')
-kubectl exec -it $tb curl -- https://details:9080/details/0 -k
+kubectl apply -f samples/bookinfo/kube/istio-rbac-ratings.yaml
 ```
 
-Denied! You will not gain access because a certificate was not found.
+Ratings should now appear.
 
-Let's exfiltrate the certificates out of a proxy so we can pretend to be them (incidentally I hope this serves as a cautionary tale about the importance locking down pods).
-
-```
-pp=$(kubectl get po -l app=productpage -o template --template '{{(index .items 0).metadata.name}}')
-mkdir ~/tmp # or wherever you want to stash these certs
-cd ~/tmp
-fs=(key.pem cert-chain.pem root-cert.pem)
-for f in ${fs[@]}; do kubectl exec -c istio-proxy $pp /bin/cat -- /etc/certs/$f >$f; done
-```
-
-This should give you the certs. Now let us copy them into our toolbox.
-
-```
-for f in ${fs[@]}; do kubectl cp $f default/$tb:$f; done
-```
-
-Try once more to talk to the details service, but this time with feeling:
-
-```
-kubectl exec -it $tb curl -- https://details:9080/details/0 -v --key ./key.pem --cert ./cert-chain.pem --cacert ./root-cert.pem -k
-```
-
-Success! We really are protecting our connections with tls. Time to enjoy its magic from the inside. Let's enable the webhook and see how the system works normally.
-
-Re-enable istio-injection and delete the `toolbox` pod.
-```
-kubectl label namespace default istio-injection=enabled
-kubectl delete po $tb
-```
-
-Attempt to access the details service from within the toolbox after the istio sidecar has been injected.
-
-```
-tb=$(kubectl get po -l app=toolbox -o template --template '{{(index .items 0).metadata.name}}')
-kubectl exec -it $tb curl -- http://details:9080/details/0
-```
-
-**_Notice the protocol._**
-
-#### [Continue to Exercise 14 - Istio RBAC](../exercise-14/README.md)
+**That's a wrap!**
